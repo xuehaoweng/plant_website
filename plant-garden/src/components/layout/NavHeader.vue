@@ -50,19 +50,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+//import { computed } from 'vue'
+import {  useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useCoinStore } from '@/stores/coin'
 import { Money } from '@element-plus/icons-vue'
 
-const route = useRoute()
+//const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const coinStore = useCoinStore()
 
 // 计算当前激活的菜单项
-const activeMenu = computed(() => route.path)
+//const activeMenu = computed(() => route.path)
 
 // 显示登录对话框
 const showLoginDialog = () => {

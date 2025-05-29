@@ -39,7 +39,7 @@
             </div>
             <div class="guide-stats">
               <span><el-icon><View /></el-icon> {{ guide.views }}</span>
-              <span><el-icon><Thumb /></el-icon> {{ guide.likes }}</span>
+              <span><el-icon><Star /></el-icon> {{ guide.likes }}</span>
             </div>
           </div>
           <div class="guide-footer">
@@ -128,7 +128,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Search, Plus, More, ThumbUp, ChatDotRound } from '@element-plus/icons-vue'
+import { Search, View, Star } from '@element-plus/icons-vue'
 import type { CareGuide, GuideCategory } from '@/types/plant'
 import { guides } from '@/mock/guides'
 

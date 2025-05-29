@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Transaction, TransactionType, TransactionSource } from '@/types/coin'
-import { COIN_RULES } from '@/types/coin'
+//import { COIN_RULES } from '@/types/coin'
 
 export const useCoinStore = defineStore('coin', () => {
   // 状态
@@ -33,13 +33,11 @@ export const useCoinStore = defineStore('coin', () => {
   const addTransaction = (
     userId: number,
     type: TransactionType,
+    amount: number,
     source: TransactionSource,
-    description: string
+    description: string,
+    createdAt: string
   ) => {
-    const amount = type === 'earn' 
-      ? COIN_RULES.earn[source as keyof typeof COIN_RULES.earn]
-      : COIN_RULES.spend[source as keyof typeof COIN_RULES.spend]
-
     const transaction: Transaction = {
       id: Date.now(),
       userId,
@@ -47,7 +45,7 @@ export const useCoinStore = defineStore('coin', () => {
       amount,
       source,
       description,
-      createdAt: new Date().toISOString()
+      createdAt
     }
 
     transactions.value.push(transaction)

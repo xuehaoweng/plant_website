@@ -127,13 +127,17 @@
 import { ref, computed } from 'vue'
 import { Search, Plus, More, Star, ChatDotRound } from '@element-plus/icons-vue'
 import { useCoinStore } from '@/stores/coin'
-import type { TransactionSource } from '@/types/coin'
+// import type { TransactionType, TransactionSource } from '@/types/coin'
 
 // 状态
 const searchQuery = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
-const currentUser = ref(null)
+const currentUser = ref({
+  id: 1,
+  name: '当前用户',
+  avatar: '/images/avatars/user1.jpg'
+})
 
 // 模拟帖子数据
 const posts = ref([
@@ -216,62 +220,34 @@ const getTagLabel = (tag: string) => {
   return labels[tag as keyof typeof labels] || '其他'
 }
 
-// 发布帖子
-const handlePost = () => {
-  // 模拟发布帖子
-  const newPost = {
-    id: Date.now(),
-    title: '新帖子标题',
-    content: '新帖子内容',
-    author: {
-      name: '当前用户',
-      avatar: '/images/avatars/user1.jpg'
-    },
-    createdAt: new Date().toISOString(),
-    likes: 0,
-    comments: 0
-  }
-  posts.value.unshift(newPost)
-  
-  // 添加园艺币奖励
-  coinStore.addTransaction({
-    userId: 'current-user-id',
-    type: 'earn',
-    amount: 10,
-    source: 'post',
-    description: '发布新帖子',
-    createdAt: new Date().toISOString()
-  })
-}
+const coinStore = useCoinStore()
 
 // 点赞帖子
 const handleLike = (post: any) => {
   post.likes++
   
-  // 添加园艺币奖励
-  coinStore.addTransaction({
-    userId: 'current-user-id',
-    type: 'earn',
-    amount: 1,
-    source: 'post',
-    description: '帖子获得点赞',
-    createdAt: new Date().toISOString()
-  })
+  coinStore.addTransaction(
+    currentUser.value.id,
+    'earn',
+    1,
+    'post',
+    '帖子获得点赞',
+    new Date().toISOString()
+  )
 }
 
 // 发表评论
 const handleComment = (post: any) => {
   post.comments++
   
-  // 添加园艺币奖励
-  coinStore.addTransaction({
-    userId: 'current-user-id',
-    type: 'earn',
-    amount: 5,
-    source: 'post',
-    description: '发表评论',
-    createdAt: new Date().toISOString()
-  })
+  coinStore.addTransaction(
+    currentUser.value.id,
+    'earn',
+    5,
+    'post',
+    '发表评论',
+    new Date().toISOString()
+  )
 }
 
 // 显示新帖对话框

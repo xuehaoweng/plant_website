@@ -156,7 +156,7 @@
               :class="{ active: selectedMethod === 'wechat' }"
               @click="selectedMethod = 'wechat'"
             >
-              <el-icon><Wechat /></el-icon>
+              <el-icon><Money /></el-icon>
               <span>微信支付</span>
             </div>
             <div
@@ -184,9 +184,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { User, Money, Star, Document, ChatDotRound, Setting, Wechat } from '@element-plus/icons-vue'
+import { User, Money, Star, Document, ChatDotRound, Setting } from '@element-plus/icons-vue'
 import { useCoinStore } from '@/stores/coin'
 import type { Transaction } from '@/types/coin'
+import { ElMessage } from 'element-plus'
 
 // 状态
 const activeTab = ref('profile')
@@ -207,7 +208,7 @@ const rechargeAmounts = [
 
 // 用户信息
 const userInfo = ref({
-  id: 'current-user-id',
+  id: 1,
   name: '园艺达人',
   avatar: '/images/avatars/user1.jpg',
   bio: '热爱园艺，专注室内植物养护',
@@ -245,14 +246,14 @@ const handleRecharge = () => {
   const coins = rechargeAmounts.find(a => a.value === amount)?.coins || 0
   
   // 添加交易记录
-  coinStore.addTransaction({
-    userId: userInfo.value.id,
-    type: 'earn',
-    amount: coins,
-    source: 'recharge',
-    description: `充值${amount}元`,
-    createdAt: new Date().toISOString()
-  })
+  coinStore.addTransaction(
+    userInfo.value.id,
+    'earn',
+    coins,
+    'system',
+    `充值${amount}元`,
+    new Date().toISOString()
+  )
 
   // 更新用户余额
   userInfo.value.coins += coins

@@ -18,7 +18,7 @@
           <el-card class="feature-card">
             <template #header>
               <div class="card-header">
-                <el-icon><Plant /></el-icon>
+                <el-icon><House /></el-icon>
                 <span>植物图鉴</span>
               </div>
             </template>
@@ -83,7 +83,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Plant, ChatDotRound, Collection, View } from '@element-plus/icons-vue'
+import { House, ChatDotRound, Collection, View } from '@element-plus/icons-vue'
 
 const router = useRouter()
 

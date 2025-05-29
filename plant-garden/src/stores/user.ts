@@ -17,7 +17,7 @@ export const useUserStore = defineStore('user', () => {
   const isLoggedIn = ref(false)
 
   // 登录
-  const login = async (username: string, password: string) => {
+  const login = async (_username: string, _password: string) => {
     try {
       // TODO: 实现实际的登录API调用
       // 模拟登录成功
