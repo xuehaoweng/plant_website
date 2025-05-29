@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>绿居 - 家庭园艺养护专家</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4CAF50',
+                        secondary: '#8D6E63',
+                        accent: '#FF9800',
+                        light: '#F1F8E9',
+                        dark: '#2E7D32'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Merriweather', 'Georgia', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+            }
+            .gradient-overlay {
+                background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);
+            }
+            .loading-spinner {
+                border: 4px solid rgba(0, 0, 0, 0.1);
+                border-left-color: #4CAF50;
+                border-radius: 50%;
+                width: 24px;
+                height: 24px;
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+        }
+    </style>
+</head>
+<body class="bg-light text-gray-800">
+    <!-- 导航栏 -->
+    <header id="navbar" class="fixed w-full z-50 transition-all duration-300 bg-transparent">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="#" class="flex items-center space-x-2">
+                <i class="fa fa-leaf text-2xl text-primary"></i>
+                <span class="text-xl font-bold text-white text-shadow">绿居</span>
+            </a>
+            
+            <!-- 桌面导航 -->
+            <nav class="hidden md:flex items-center space-x-8">
+                <a href="#home" class="text-white hover:text-accent transition-colors">首页</a>
+                <a href="#plants" class="text-white hover:text-accent transition-colors">植物分类</a>
+                <a href="#care-guides" class="text-white hover:text-accent transition-colors">养护指南</a>
+                <a href="#problems" class="text-white hover:text-accent transition-colors">常见问题</a>
+                <a href="#community" class="text-white hover:text-accent transition-colors">社区交流</a>
+                <div id="login-nav" class="block">
+                    <button id="login-btn" class="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-medium py-2 px-6 rounded-full transition-all transform hover:scale-105 border border-white/40">
+                        登录
+                    </button>
+                </div>
+                <div id="user-nav" class="hidden">
+                    <div class="flex items-center space-x-4">
+                        <span id="username-display" class="text-white"></span>
+                        <button id="logout-btn" class="text-white hover:text-accent transition-colors">
+                            <i class="fa fa-sign-out"></i>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- 移动端菜单按钮 -->
+            <button id="menu-toggle" class="md:hidden text-white text-2xl">
+                <i class="fa fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- 移动端导航菜单 -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg absolute w-full">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-4">
+                <a href="#home" class="text-gray-800 hover:text-primary transition-colors py-2 border-b border-gray-100">首页</a>
+                <a href="#plants" class="text-gray-800 hover:text-primary transition-colors py-2 border-b border-gray-100">植物分类</a>
+                <a href="#care-guides" class="text-gray-800 hover:text-primary transition-colors py-2 border-b border-gray-100">养护指南</a>
+                <a href="#problems" class="text-gray-800 hover:text-primary transition-colors py-2 border-b border-gray-100">常见问题</a>
+                <a href="#community" class="text-gray-800 hover:text-primary transition-colors py-2 border-b border-gray-100">社区交流</a>
+                <div id="mobile-login-nav" class="block py-2">
+                    <button id="mobile-login-btn" class="w-full bg-primary hover:bg-dark text-white font-medium py-2 px-6 rounded-full transition-all">
+                        登录
+                    </button>
+                </div>
+                <div id="mobile-user-nav" class="hidden py-2">
+                    <div class="flex items-center justify-between">
+                        <span id="mobile-username-display" class="text-gray-800"></span>
+                        <button id="mobile-logout-btn" class="text-gray-600 hover:text-primary transition-colors">
+                            <i class="fa fa-sign-out"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 登录模态框 -->
+    <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="relative bg-white rounded-xl shadow-2xl p-8 w-full max-w-md mx-4">
+            <button id="close-login-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fa fa-times"></i>
+            </button>
+            <h3 class="text-xl font-bold text-gray-800 mb-6 text-center">用户登录</h3>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-username" class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                    <input type="text" id="login-username" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" placeholder="请输入用户名">
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                    <input type="password" id="login-password" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" placeholder="请输入密码">
+                </div>
+                <button type="submit" class="w-full bg-primary hover:bg-dark text-white font-medium py-3 px-6 rounded-lg transition-colors shadow-md">
+                    登录
+                </button>
+                <p class="text-sm text-gray-500 text-center">还没有账号？请联系管理员获取</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- 英雄区域 -->
+    <section id="home" class="relative h-screen flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="https://picsum.photos/id/145/1920/1080" alt="美丽的花园" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-black/50"></div>
+        </div>
+        
+        <div class="container mx-auto px-4 z-10 text-center">
+            <h1 class="text-[clamp(2.5rem,5vw,4rem)] font-bold text-white mb-6 leading-tight">
+                让每个家庭都充满<span class="text-accent">绿色生机</span>
+            </h1>
+            <p class="text-[clamp(1rem,2vw,1.25rem)] text-white/90 mb-8 max-w-2xl mx-auto">
+                专业的家庭园艺养护方案，解决您种植过程中的各种难题，让您的植物健康成长
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#plants" class="bg-primary hover:bg-dark text-white font-medium py-3 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg">
+                    探索植物分类
+                </a>
+                <a href="#care-guides" class="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-medium py-3 px-8 rounded-full transition-all transform hover:scale-105 border border-white/40">
+                    查看养护指南
+                </a>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-10 left-0 right-0 text-center">
+            <a href="#plants" class="text-white animate-bounce inline-block">
+                <i class="fa fa-angle-down text-3xl"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- 植物分类区域 -->
+    <section id="plants" class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-gray-800 mb-4">植物分类</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">了解不同类型植物的特点和养护要点，找到最适合您家庭环境的绿色伙伴</p>
+            </div>
+            
+            <div id="plants-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- 加载状态 -->
+                <div class="col-span-full text-center py-12">
+                    <div class="loading-spinner mx-auto mb-4"></div>
+                    <p class="text-gray-500">正在加载植物分类...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 养护指南区域 -->
+    <section id="care-guides" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-gray-800 mb-4">养护指南</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">专业的养护知识，帮助您解决植物生长过程中的各种问题</p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- 主要内容区 -->
+                <div class="lg:col-span-2 space-y-8">
+                    <!-- 热门养护指南 -->
+                    <div id="featured-guide" class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <div class="h-64 relative">
+                            <img src="https://picsum.photos/id/106/800/400" alt="浇水技巧" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 gradient-overlay"></div>
+                            <div class="absolute bottom-4 left-4 right-4">
+                                <span class="bg-accent text-white text-sm font-medium px-3 py-1 rounded-full">热门</span>
+                                <h3 class="text-xl font-bold text-white mt-2">植物浇水的正确方法与频率</h3>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <p class="text-gray-600 mb-4">了解不同植物的需水量和浇水频率，避免过度浇水或浇水不足对植物造成的伤害...</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <img src="https://picsum.photos/id/1005/40/40" alt="作者头像" class="w-10 h-10 rounded-full object-cover">
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-800">李园丁</p>
+                                        <p class="text-xs text-gray-500">2025年5月15日 · 8分钟阅读</p>
+                                    </div>
+                                </div>
+                                <a href="#" class="text-primary hover:text-dark font-medium">阅读全文</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 其他养护指南列表 -->
+                    <div id="guides-container" class="space-y-6">
+                        <!-- 加载状态 -->
+                        <div class="col-span-full text-center py-12">
+                            <div class="loading-spinner mx-auto mb-4"></div>
+                            <p class="text-gray-500">正在加载养护指南...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-10">
+                        <a href="#" class="inline-flex items-center justify-center bg-white hover:bg-gray-50 text-primary font-medium py-3 px-8 rounded-lg transition-all shadow-sm border border-gray-200">
+                            查看更多养护指南 <i class="fa fa-angle-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 侧边栏 -->
+                <div class="space-y-8">
+                    <!-- 搜索框 -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">搜索养护知识</h3>
+                        <div class="relative">
+                            <input type="text" id="search-input" placeholder="输入关键词搜索..." class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                            <button id="search-button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 热门标签 -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">热门标签</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <a href="#" class="bg-primary/10 hover:bg-primary/20 text-primary text-sm px-3 py-1 rounded-full transition-colors">#浇水技巧</a>
+                            <a href="#" class="bg-primary/10 hover:bg-primary/20 text-primary text-sm px-3 py-1 rounded-full transition-colors">#病虫害防治</a>
+                            <a href="#" class="bg-primary/10 hover:bg-primary/20 text-primary text-sm px-3 py-1 rounded-full transition-colors">#盆栽造型</a>
+                            <a href="#" class="bg-primary/10 hover:bg-primary/20 text-primary text-sm px-3 py-1 rounded-full transition-colors">#家庭菜园</a>
+                            <a href="#" class="bg-primary/10 hover:bg-primary/20 text-primary text-sm px-3 py-1 rounded-full transition-colors">#多肉植物</a>
+                            <a href="#" class="bg-primary/10 hover:bg-primary/20 text-primary text-sm px-3 py-1 rounded-full transition-colors">#观叶植物</a>
+                            <a href="#" class="bg-primary/10 hover:bg-primary/20 text-primary text-sm px-3 py-1 rounded-full transition-colors">#花期管理</a>
+                            <a href="#" class="bg-primary/10 hover:bg-primary/20 text-primary text-sm px-3 py-1 rounded-full transition-colors">#有机肥料</a>
+                        </div>
+                    </div>
+                    
+                    <!-- 季节养护日历 -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">季节养护日历</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="bg-primary/10 rounded-full p-2 mr-3">
+                                    <i class="fa fa-sun-o text-primary"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-800">夏季养护要点</h4>
+                                    <p class="text-sm text-gray-600">避免正午强光直射，增加浇水频率但注意排水...</p>
+                                    <a href="#" class="text-primary hover:text-dark text-xs mt-1 inline-block">查看详情</a>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="bg-secondary/10 rounded-full p-2 mr-3">
+                                    <i class="fa fa-leaf text-secondary"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-800">秋季养护要点</h4>
+                                    <p class="text-sm text-gray-600">适当减少浇水量，增加磷钾肥促进植物木质化...</p>
+                                    <a href="#" class="text-primary hover:text-dark text-xs mt-1 inline-block">查看详情</a>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="bg-blue-100 rounded-full p-2 mr-3">
+                                    <i class="fa fa-snowflake-o text-blue-500"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-800">冬季养护要点</h4>
+                                    <p class="text-sm text-gray-600">控制浇水，注意保暖，给予充足光照...</p>
+                                    <a href="#" class="text-primary hover:text-dark text-xs mt-1 inline-block">查看详情</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 常见问题区域 -->
+    <section id="problems" class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-gray-800 mb-4">常见问题</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">解决您在植物养护过程中遇到的常见问题和挑战</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <!-- 问题列表 -->
+                <div id="problems-container" class="space-y-6">
+                    <!-- 加载状态 -->
+                    <div class="col-span-full text-center py-12">
+                        <div class="loading-spinner mx-auto mb-4"></div>
+                        <p class="text-gray-500">正在加载常见问题...</p>
+                    </div>
+                </div>
+                
+                <!-- 问题提交表单 -->
+                <div class="bg-primary/5 rounded-xl p-8 shadow-md">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6">提交您的问题</h3>
+                    <form id="question-form" class="space-y-4">
+                        <div>
+                            <label for="question-name" class="block text-sm font-medium text-gray-700 mb-1">您的姓名</label>
+                            <input type="text" id="question-name" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" placeholder="请输入您的姓名">
+                        </div>
+                        <div>
+                            <label for="question-email" class="block text-sm font-medium text-gray-700 mb-1">电子邮箱</label>
+                            <input type="email" id="question-email" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" placeholder="请输入您的电子邮箱">
+                        </div>
+                        <div>
+                            <label for="question-plant-type" class="block text-sm font-medium text-gray-700 mb-1">植物类型</label>
+                            <select id="question-plant-type" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                                <option value="">请选择植物类型</option>
+                                <option value="flower">花卉</option>
+                                <option value="potted">盆栽</option>
+                                <option value="vegetable">蔬菜</option>
+                                <option value="fruit">水果</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="user-question" class="block text-sm font-medium text-gray-700 mb-1">您的问题</label>
+                            <textarea id="user-question" rows="4" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" placeholder="请详细描述您遇到的问题..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-primary hover:bg-dark text-white font-medium py-3 px-6 rounded-lg transition-colors shadow-md">
+                            提交问题
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 社区交流区域 -->
+    <section id="community" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-gray-800 mb-4">社区交流</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">与其他园艺爱好者分享您的经验和成果，互相学习，共同进步</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- 社区动态 -->
+                <div class="md:col-span-2 space-y-8">
+                    <!-- 社区帖子列表 -->
+                    <div id="community-container" class="space-y-8">
+                        <!-- 加载状态 -->
+                        <div class="col-span-full text-center py-12">
+                            <div class="loading-spinner mx-auto mb-4"></div>
+                            <p class="text-gray-500">正在加载社区动态...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 发布新帖子 -->
+                    <div id="new-post-container" class="bg-white rounded-xl shadow-md overflow-hidden hidden">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">发布新帖子</h3>
+                            <form id="new-post-form" class="space-y-4">
+                                <div>
+                                    <label for="post-title" class="block text-sm font-medium text-gray-700 mb-1">标题</label>
+                                    <input type="text" id="post-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" placeholder="请输入帖子标题">
+                                </div>
+                                <div>
+                                    <label for="post-content" class="block text-sm font-medium text-gray-700 mb-1">内容</label>
+                                    <textarea id="post-content" rows="4" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" placeholder="请详细描述您的内容..."></textarea>
+                                </div>
+                                <div class="flex justify-end">
+                                    <button type="button" id="cancel-post-btn" class="mr-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-6 rounded-lg transition-colors">
+                                        取消
+                                    </button>
+                                    <button type="submit" class="bg-primary hover:bg-dark text-white font-medium py-2 px-6 rounded-lg transition-colors shadow-md">
+                                        发布
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button id="new-post-btn" class="inline-flex items-center justify-center bg-primary hover:bg-dark text-white font-medium py-3 px-8 rounded-full transition-all shadow-md">
+                            <i class="fa fa-pencil mr-2"></i> 发布新帖子
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 热门话题 -->
+                <div class="space-y-8">
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">热门话题</h3>
+                        <div class="space-y-4">
+                            <a href="#" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <h4 class="font-medium text-gray-800"># 夏季植物养护技巧大公开</h4>
+                                <p class="text-sm text-gray-600 mt-1">243人参与 · 35篇帖子</p>
+                            </a>
+                            <a href="#" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <h4 class="font-medium text-gray-800"># 家庭阳台菜园打造指南</h4>
+                                <p class="text-sm text-gray-600 mt-1">187人参与 · 42篇帖子</p>
+                            </a>
+                            <a href="#" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <h4 class="font-medium text-gray-800"># 多肉植物新手入门</h4>
+                                <p class="text-sm text-gray-600 mt-1">312人参与 · 56篇帖子</p>
+                            </a>
+                            <a href="#" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <h4 class="font-medium text-gray-800"># 室内植物装饰灵感</h4>
+                                <p class="text-sm text-gray-600 mt-1">156人参与 · 29篇帖子</p>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- 活跃用户 -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">活跃用户</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <img src="https://picsum.photos/id/1012/50/50" alt="用户头像" class="w-10 h-10 rounded-full object-cover">
+                                <div class="ml-3">
+                                    <h4 class="font-medium text-gray-800">李园艺师</h4>
+                                    <p class="text-xs text-gray-500">分享了42篇养护指南</p>
+                                </div>
+                                <button class="ml-auto text-sm bg-primary/10 hover:bg-primary/20 text-primary px-3 py-1 rounded-full transition-colors">
+                                    关注
+                                </button>
+                            </div>
+                            <div class="flex items-center">
+                                <img src="https://picsum.photos/id/1027/50/50" alt="用户头像" class="w-10 h-10 rounded-full object-cover">
+                                <div class="ml-3">
+                                    <h4 class="font-medium text-gray-800">王小花匠</h4>
+                                    <p class="text-xs text-gray-500">回答了87个问题</p>
+                                </div>
+                                <button class="ml-auto text-sm bg-primary/10 hover:bg-primary/20 text-primary px-3 py-1 rounded-full transition-colors">
+                                    关注
+                                </button>
+                            </div>
+                            <div class="flex items-center">
+                                <img src="https://picsum.photos/id/1074/50/50" alt="用户头像" class="w-10 h-10 rounded-full object-cover">
+                                <div class="ml-3">
+                                    <h4 class="font-medium text-gray-800">张园丁</h4>
+                                    <p class="text-xs text-gray-500">分享了35个花园案例</p>
+                                </div>
+                                <button class="ml-auto text-sm bg-primary/10 hover:bg-primary/20 text-primary px-3 py-1 rounded-full transition-colors">
+                                    关注
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 订阅区域 -->
+    <section class="py-16 bg-primary">
+        <div class="container mx-auto px-4">
+            <div class="max-w-3xl mx-auto text-center">
+                <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-white mb-4">订阅我们的园艺资讯</h2>
+                <p class="text-white/80 mb-8">定期获取最新的养护知识、季节种植指南和社区活动信息</p>
+                <form id="subscribe-form" class="flex flex-col sm:flex-row gap-4 max-w-xl mx-auto">
+                    <input type="email" id="subscribe-email" placeholder="请输入您的电子邮箱" class="flex-1 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50">
+                    <button type="submit" class="bg-white hover:bg-gray-100 text-primary font-medium py-3 px-6 rounded-lg transition-colors shadow-md">
+                        立即订阅
+                    </button>
+                </form>
+                <p class="text-white/60 text-sm mt-4">我们尊重您的隐私，绝不会向第三方分享您的信息</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white pt-16 pb-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                <div>
+                    <div class="flex items-center space-x-2 mb-6">
+                        <i class="fa fa-leaf text-2xl text-primary"></i>
+                        <span class="text-xl font-bold">绿居</span>
+                    </div>
+                    <p class="text-gray-400 mb-6">专业的家庭园艺养护方案平台，为您提供全方位的植物养护知识和解决方案</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa fa-weixin text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa fa-weibo text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa fa-instagram text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa fa-youtube-play text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-6">快速链接</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#home" class="text-gray-400 hover:text-white transition-colors">首页</a></li>
+                        <li><a href="#plants" class="text-gray-400 hover:text-white transition-colors">植物分类</a></li>
+                        <li><a href="#care-guides" class="text-gray-400 hover:text-white transition-colors">养护指南</a></li>
+                        <li><a href="#problems" class="text-gray-400 hover:text-white transition-colors">常见问题</a></li>
+                        <li><a href="#community" class="text-gray-400 hover:text-white transition-colors">社区交流</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-6">资源中心</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">新手入门指南</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">季节养护日历</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">植物病虫害图鉴</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">园艺工具推荐</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">植物百科全书</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-6">联系我们</h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="fa fa-map-marker mt-1 mr-3 text-primary"></i>
+                            <span class="text-gray-400">北京市海淀区中关村南大街5号</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-phone mt-1 mr-3 text-primary"></i>
+                            <span class="text-gray-400">400-123-4567</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-envelope mt-1 mr-3 text-primary"></i>
+                            <span class="text-gray-400">contact@lvju.com</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-clock-o mt-1 mr-3 text-primary"></i>
+                            <span class="text-gray-400">周一至周日 9:00-18:00</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <p class="text-gray-500 text-sm">© 2025 绿居. 保留所有权利.</p>
+                    <div class="flex space-x-6 mt-4 md:mt-0">
+                        <a href="#" class="text-gray-500 hover:text-gray-400 text-sm">隐私政策</a>
+                        <a href="#" class="text-gray-500 hover:text-gray-400 text-sm">使用条款</a>
+                        <a href="#" class="text-gray-500 hover:text-gray-400 text-sm">关于我们</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" class="fixed bottom-8 right-8 bg-primary hover:bg-dark text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 opacity-0 invisible">
+        <i class="fa fa-angle-up text-xl"></i>
+    </button>
+
+    <!-- 消息提示框 -->
+    <div id="toast" class="fixed top-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 flex items-center">
+        <i id="toast-icon" class="fa fa-check-circle mr-2"></i>
+        <span id="toast-message"></span>
+    </div>
+
+    <script>
+        // API 基础URL
+        const API_BASE_URL = 'http://localhost:8080/api';
+        
+        // 导航栏滚动效果
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('bg-white', 'shadow-md');
+                navbar.classList.remove('bg-transparent');
+                document.querySelectorAll('#navbar a').forEach(link => {
+                    link.classList.remove('text-white');
+                    link.classList.add('text-gray-800');
+                });
+                document.querySelectorAll('#login-btn, #mobile-login-btn').forEach(btn => {
+                    btn.classList.remove('bg-white/20', 'text-white', 'border-white/40');
+                    btn.classList.add('bg-primary', 'text-white');
+                });
+            } else {
+                navbar.classList.remove('bg-white', 'shadow-md');
+                navbar.classList.add('bg-transparent');
+                document.querySelectorAll('#navbar a').forEach(link => {
+                    link.classList.add('text-white');
+                    link.classList.remove('text-gray-800');
+                });
+                document.querySelectorAll('#login-btn, #mobile-login-btn').forEach(btn => {
+                    btn.classList.add('bg-white/20', 'text-white', 'border-white/40');
+                    btn.classList.remove('bg-primary', 'text-white');
+                });
+            }
+        });
+
+        // 移动端菜单切换
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            menuToggle.innerHTML = mobileMenu.classList.contains('hidden') ? 
+                '<i class="fa fa-bars"></i>' : 
+                '<i class="fa fa-times"></i>';
+        });
+
+        // 返回顶部按钮
+        const backToTopBtn = document.getElementById('back-to-top');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTopBtn.classList.remove('opacity-0', 'invisible');
+                backToTopBtn.classList.add('opacity-100', 'visible');
+            } else {
+                backToTopBtn.classList.add('opacity-0', 'invisible');
+                backToTopBtn.classList.remove('opacity-100', 'visible');
+            }
+        });
+
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                // 关闭移动端菜单
+                if (!mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                    menuToggle.innerHTML = '<i class="fa fa-bars"></i>';
+                }
+                
+                // 滚动到目标位置
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // 登录模态框控制
+        const loginBtn = document.getElementById('login-btn');
+        const mobileLoginBtn = document.getElementById('mobile-login-btn');
+        const loginModal = document.getElementById('login-modal');
+        const closeLoginModal = document.getElementById('close-login-modal');
+        
+        loginBtn.addEventListener('click', () => {
+            loginModal.classList.remove('hidden');
+        });
+        
+        mobileLoginBtn.addEventListener('click', () => {
+            loginModal.classList.remove('hidden');
+            mobileMenu.classList.add('hidden');
+            menuToggle.innerHTML = '<i class="fa fa-bars"></i>';
+        });
+        
+        closeLoginModal.addEventListener('click', () => {
+            loginModal.classList.add('hidden');
+        });
+        
+        // 点击模态框背景关闭
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                loginModal.classList.add('hidden');
+            }
+        });
+        
+        // 登录表单提交
+        const loginForm = document.getElementById('login-form');
+        const loginUsername = document.getElementById('login-username');
+        const loginPassword = document.getElementById('login-password');
+        const loginNav = document.getElementById('login-nav');
+        const userNav = document.getElementById('user-nav');
+        const usernameDisplay = document.getElementById('username-display');
+        const mobileLoginNav = document.getElementById('mobile-login-nav');
+        const mobileUserNav = document.getElementById('mobile-user-nav');
+        const mobileUsernameDisplay = document.getElementById('mobile-username-display');
+        const logoutBtn = document.getElementById('logout-btn');
+        const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+        
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = loginUsername.value.trim();
+            const password = loginPassword.value.trim();
+            
+            if (!username || !password) {
+                showToast('请输入用户名和密码', 'error');
+                return;
+            }
+            
+            try {
+                // 调用登录API
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // 保存token到localStorage
+                    localStorage.setItem('auth_token', data.token);
+                    
+                    // 更新UI
+                    usernameDisplay.textContent = username;
+                    mobileUsernameDisplay.textContent = username;
+                    loginNav.classList.add('hidden');
+                    userNav.classList.remove('hidden');
+                    mobileLoginNav.classList.add('hidden');
+                    mobileUserNav.classList.remove('hidden');
+                    
+                    loginModal.classList.add('hidden');
+                    loginForm.reset();
+                    
+                    showToast('登录成功！欢迎回来，' + username, 'success');
+                    
+                    // 重新加载数据，因为现在用户已登录
+                    loadPlants();
+                    loadGuides();
+                    loadProblems();
+                    loadCommunityPosts();
+                } else {
+                    const errorData = await response.json();                    }
+                } catch (error) {
+                    showToast('网络错误，请稍后重试', 'error');
+                    console.error('登录请求失败:', error);
+                }
+            });
+
+            // 退出登录
+            logoutBtn.addEventListener('click', logout);
+            mobileLogoutBtn.addEventListener('click', logout);
+
+            function logout() {
+                // 清除token
+                localStorage.removeItem('auth_token');
+
+                // 更新UI
+                loginNav.classList.remove('hidden');
+                userNav.classList.add('hidden');
+                mobileLoginNav.classList.remove('hidden');
+                mobileUserNav.classList.add('hidden');
+
+                showToast('已成功退出登录', 'info');
+            }
+
+            // 显示消息提示框
+            function showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                const toastIcon = document.getElementById('toast-icon');
+                const toastMessage = document.getElementById('toast-message');
+
+                // 设置图标和背景颜色
+                if (type === 'success') {
+                    toastIcon.className = 'fa fa-check-circle mr-2';
+                    toast.classList.remove('bg-red-500', 'bg-blue-500');
+                    toast.classList.add('bg-green-500');
+                } else if (type === 'error') {
+                    toastIcon.className = 'fa fa-exclamation-circle mr-2';
+                    toast.classList.remove('bg-green-500', 'bg-blue-500');
+                    toast.classList.add('bg-red-500');
+                } else if (type === 'info') {
+                    toastIcon.className = 'fa fa-info-circle mr-2';
+                    toast.classList.remove('bg-green-500', 'bg-red-500');
+                    toast.classList.add('bg-blue-500');
+                }
+
+                toastMessage.textContent = message;
+                toast.classList.remove('translate-x-full');
+
+                // 3秒后自动隐藏
+                setTimeout(() => {
+                    toast.classList.add('translate-x-full');
+                }, 3000);
+            }
+
+            // 搜索功能
+            const searchButton = document.getElementById('search-button');
+            const searchInput = document.getElementById('search-input');
+
+            searchButton.addEventListener('click', async () => {
+                const query = searchInput.value.trim();
+                if (query) {
+                    try {
+                        // 调用搜索API
+                        const response = await fetch(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`);
+
+                        if (response.ok) {
+                            const results = await response.json();
+                            // 处理搜索结果
+                            showToast(`找到 ${results.length} 个相关结果`, 'info');
+                            // 这里可以添加显示搜索结果的逻辑
+                        } else {
+                            showToast('搜索失败，请稍后重试', 'error');
+                        }
+                    } catch (error) {
+                        showToast('网络错误，请稍后重试', 'error');
+                        console.error('搜索请求失败:', error);
+                    }
+                } else {
+                    showToast('请输入搜索关键词', 'error');
+                }
+            });
+
+            // 回车键触发搜索
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchButton.click();
+                }
+            });
+
+            // 问题提交表单
+            const questionForm = document.getElementById('question-form');
+
+            questionForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const name = document.getElementById('question-name').value.trim();
+                const email = document.getElementById('question-email').value.trim();
+                const plantType = document.getElementById('question-plant-type').value;
+                const question = document.getElementById('user-question').value.trim();
+
+                if (!name || !email || !plantType || !question) {
+                    showToast('请填写完整信息', 'error');
+                    return;
+                }
+
+                try {
+                    // 调用提交问题API
+                    const response = await fetch(`${API_BASE_URL}/questions`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name, email, plantType, question })
+                    });
+
+                    if (response.ok) {
+                        questionForm.reset();
+                        showToast('问题已提交，我们将尽快回复您', 'success');
+                    } else {
+                        const errorData = await response.json();
+                        showToast(errorData.message || '提交失败，请稍后重试', 'error');
+                    }
+                } catch (error) {
+                    showToast('网络错误，请稍后重试', 'error');
+                    console.error('提交问题请求失败:', error);
+                }
+            });
+
+            // 新帖子表单
+            const newPostBtn = document.getElementById('new-post-btn');
+            const newPostContainer = document.getElementById('new-post-container');
+            const cancelPostBtn = document.getElementById('cancel-post-btn');
+            const newPostForm = document.getElementById('new-post-form');
+
+            newPostBtn.addEventListener('click', () => {
+                // 检查用户是否已登录
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    showToast('请先登录再发布帖子', 'info');
+                    loginModal.classList.remove('hidden');
+                    return;
+                }
+
+                newPostContainer.classList.remove('hidden');
+                // 滚动到表单
+                newPostContainer.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+
+            cancelPostBtn.addEventListener('click', () => {
+                newPostContainer.classList.add('hidden');
+                newPostForm.reset();
+            });
+
+            newPostForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const title = document.getElementById('post-title').value.trim();
+                const content = document.getElementById('post-content').value.trim();
+
+                if (!title || !content) {
+                    showToast('请填写帖子标题和内容', 'error');
+                    return;
+                }
+
+                const token = localStorage.getItem('auth_token');
+
+                try {
+                    // 调用发布帖子API
+                    const response = await fetch(`${API_BASE_URL}/posts`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ title, content })
+                    });
+
+                    if (response.ok) {
+                        newPostContainer.classList.add('hidden');
+                        newPostForm.reset();
+
+                        // 刷新社区帖子
+                        loadCommunityPosts();
+
+                        showToast('帖子发布成功！', 'success');
+                    } else {
+                        const errorData = await response.json();
+                        showToast(errorData.message || '发布失败，请稍后重试', 'error');
+                    }
+                } catch (error) {
+                    showToast('网络错误，请稍后重试', 'error');
+                    console.error('发布帖子请求失败:', error);
+                }
+            });
+
+            // 订阅表单
+            const subscribeForm = document.getElementById('subscribe-form');
+            const subscribeEmail = document.getElementById('subscribe-email');
+
+            subscribeForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const email = subscribeEmail.value.trim();
+
+                if (!email) {
+                    showToast('请输入电子邮箱', 'error');
+                    return;
+                }
+
+                // 简单验证邮箱格式
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showToast('请输入有效的电子邮箱地址', 'error');
+                    return;
+                }
+
+                try {
+                    // 调用订阅API
+                    const response = await fetch(`${API_BASE_URL}/subscribe`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email })
+                    });
+
+                    if (response.ok) {
+                        subscribeEmail.value = '';
+                        showToast('订阅成功！感谢您的关注', 'success');
+                    } else {
+                        const errorData = await response.json();
+                        showToast(errorData.message || '订阅失败，请稍后重试', 'error');
+                    }
+                } catch (error) {
+                    showToast('网络错误，请稍后重试', 'error');
+                    console.error('订阅请求失败:', error);
+                }
+            });
+
+            // 从API加载植物分类数据
+            async function loadPlants() {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/plants`);
+
+                    if (response.ok) {
+                        const plants = await response.json();
+                        const container = document.getElementById('plants-container');
+
+                        if (plants.length > 0) {
+                            container.innerHTML = '';
+
+                            plants.forEach(plant => {
+                                container.innerHTML += `
+                                    <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover">
+                                        <div class="h-48 relative">
+                                            <img src="${plant.imageUrl}" alt="${plant.name}" class="w-full h-full object-cover">
+                                        </div>
+                                        <div class="p-6">
+                                            <h3 class="text-xl font-bold text-gray-800 mb-2">${plant.name}</h3>
+                                            <p class="text-gray-600 mb-4">${plant.description}</p>
+                                            <a href="#" class="inline-flex items-center text-primary hover:text-dark font-medium">
+                                                查看详情 <i class="fa fa-angle-right ml-1"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            container.innerHTML = `
+                                <div class="col-span-full text-center py-12">
+                                    <i class="fa fa-leaf text-gray-400 text-5xl mb-4"></i>
+                                    <p class="text-gray-500">暂无植物分类数据</p>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        const container = document.getElementById('plants-container');
+                        container.innerHTML = `
+                            <div class="col-span-full text-center py-12">
+                                <i class="fa fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+                                <p class="text-gray-500">加载植物分类失败，请稍后重试</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    const container = document.getElementById('plants-container');
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <i class="fa fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+                            <p class="text-gray-500">网络错误，请检查API连接</p>
+                        </div>
+                    `;
+                    console.error('加载植物分类失败:', error);
+                }
+            }
+
+            // 从API加载养护指南数据
+            async function loadGuides() {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/guides`);
+
+                    if (response.ok) {
+                        const guides = await response.json();
+                        const container = document.getElementById('guides-container');
+
+                        if (guides.length > 0) {
+                            container.innerHTML = '';
+
+                            guides.forEach(guide => {
+                                container.innerHTML += `
+                                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                                        <div class="flex flex-col md:flex-row">
+                                            <div class="md:w-1/3 h-48 md:h-auto relative">
+                                                <img src="${guide.imageUrl}" alt="${guide.title}" class="w-full h-full object-cover">
+                                            </div>
+                                            <div class="md:w-2/3 p-6">
+                                                <span class="text-xs font-medium text-${guide.categoryColor} bg-${guide.categoryColor}/10 px-2 py-1 rounded-full">${guide.category}</span>
+                                                <h3 class="text-lg font-bold text-gray-800 mt-2 mb-2">${guide.title}</h3>
+                                                <p class="text-gray-600 mb-4 line-clamp-2">${guide.summary}</p>
+                                                <div class="flex items-center justify-between">
+                                                    <div class="flex items-center">
+                                                        <img src="${guide.authorAvatar}" alt="${guide.author}" class="w-8 h-8 rounded-full object-cover">
+                                                        <div class="ml-2">
+                                                            <p class="text-xs font-medium text-gray-800">${guide.author}</p>
+                                                            <p class="text-xs text-gray-500">${guide.date}</p>
+                                                        </div>
+                                                    </div>
+                                                    <a href="#" class="text-primary hover:text-dark font-medium text-sm">阅读全文</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            container.innerHTML = `
+                                <div class="col-span-full text-center py-12">
+                                    <i class="fa fa-book text-gray-400 text-5xl mb-4"></i>
+                                    <p class="text-gray-500">暂无养护指南数据</p>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        const container = document.getElementById('guides-container');
+                        container.innerHTML = `
+                            <div class="col-span-full text-center py-12">
+                                <i class="fa fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+                                <p class="text-gray-500">加载养护指南失败，请稍后重试</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    const container = document.getElementById('guides-container');
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <i class="fa fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+                            <p class="text-gray-500">网络错误，请检查API连接</p>
+                        </div>
+                    `;
+                    console.error('加载养护指南失败:', error);
+                }
+            }
+
+            // 从API加载常见问题数据
+            async function loadProblems() {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/problems`);
+
+                    if (response.ok) {
+                        const problems = await response.json();
+                        const container = document.getElementById('problems-container');
+
+                        if (problems.length > 0) {
+                            container.innerHTML = '';
+
+                            problems.forEach(problem => {
+                                container.innerHTML += `
+                                    <div class="bg-white rounded-xl shadow-md p-6">
+                                        <h3 class="text-lg font-bold text-gray-800 mb-3">${problem.question}</h3>
+                                        <p class="text-gray-600 mb-3">${problem.answer}</p>
+                                        <button class="text-primary hover:text-dark font-medium text-sm flex items-center">
+                                            查看详细解答 <i class="fa fa-angle-down ml-1"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            container.innerHTML = `
+                                <div class="col-span-full text-center py-12">
+                                    <i class="fa fa-question-circle text-gray-400 text-5xl mb-4"></i>
+                                    <p class="text-gray-500">暂无常见问题数据</p>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        const container = document.getElementById('problems-container');
+                        container.innerHTML = `
+                            <div class="col-span-full text-center py-12">
+                                <i class="fa fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+                                <p class="text-gray-500">加载常见问题失败，请稍后重试</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    const container = document.getElementById('problems-container');
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <i class="fa fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+                            <p class="text-gray-500">网络错误，请检查API连接</p>
+                        </div>
+                    `;
+                    console.error('加载常见问题失败:', error);
+                }
+            }
+
+            // 从API加载社区帖子数据
+            async function loadCommunityPosts() {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/posts`);
+
+                    if (response.ok) {
+                        const posts = await response.json();
+                        const container = document.getElementById('community-container');
+
+                        if (posts.length > 0) {
+                            container.innerHTML = '';
+
+                            posts.forEach(post => {
+                                container.innerHTML += `
+                                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                                        <div class="p-6">
+                                            <div class="flex items-center mb-4">
+                                                <img src="${post.userAvatar}" alt="${post.username}" class="w-10 h-10 rounded-full object-cover">
+                                                <div class="ml-3">
+                                                    <h4 class="font-medium text-gray-800">${post.username}</h4>
+                                                    <p class="text-xs text-gray-500">${post.timeAgo} · ${post.category}</p>
+                                                </div>
+                                            </div>
+                                            <h3 class="text-lg font-bold text-gray-800 mb-3">${post.title}</h3>
+                                            <p class="text-gray-600 mb-4">${post.content}</p>
+                                            ${post.images ? `
+                                                <div class="grid grid-cols-3 gap-2 mb-4">
+                                                    ${post.images.map(img => `
+                                                        <img src="${img}" alt="帖子图片" class="w-full h-32 object-cover rounded-lg">
+                                                    `).join('')}
+                                                </div>
+                                            ` : ''}
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex space-x-4">
+                                                    <button class="flex items-center text-gray-500 hover:text-primary">
+                                                        <i class="fa fa-heart-o mr-1"></i> ${post.likes}
+                                                    </button>
+                                                    <button class="flex items-center text-gray-500 hover:text-primary">
+                                                        <i class="fa fa-comment-o mr-1"></i> ${post.comments}
+                                                    </button>
+                                                </div>
+                                                <button class="flex items-center text-gray-500 hover:text-primary">
+                                                    <i class="fa fa-share-alt mr-1"></i> 分享
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            container.innerHTML = `
+                                <div class="col-span-full text-center py-12">
+                                    <i class="fa fa-comments-o text-gray-400 text-5xl mb-4"></i>
+                                    <p class="text-gray-500">暂无社区帖子数据</p>
+                                    <p class="text-gray-400 mt-2">成为第一个发布帖子的人吧！</p>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        const container = document.getElementById('community-container');
+                        container.innerHTML = `
+                            <div class="col-span-full text-center py-12">
+                                <i class="fa fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+                                <p class="text-gray-500">加载社区帖子失败，请稍后重试</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    const container = document.getElementById('community-container');
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <i class="fa fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+                            <p class="text-gray-500">网络错误，请检查API连接</p>
+                        </div>
+                    `;
+                    console.error('加载社区帖子失败:', error);
+                }
+            }
+
+            // 页面加载完成后加载数据
+            document.addEventListener('DOMContentLoaded', () => {
+                // 检查用户是否已登录
+                const token = localStorage.getItem('auth_token');
+                if (token) {
+                    // 获取用户信息
+                    fetch(`${API_BASE_URL}/auth/me`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        } else {
+                            // 无效的token，清除
+                            localStorage.removeItem('auth_token');
+                            return null;
+                        }
+                    })
+                    .then(user => {
+                        if (user) {
+                            usernameDisplay.textContent = user.username;
+                            mobileUsernameDisplay.textContent = user.username;
+                            loginNav.classList.add('hidden');
+                            userNav.classList.remove('hidden');
+                            mobileLoginNav.classList.add('hidden');
+                            mobileUserNav.classList.remove('hidden');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('获取用户信息失败:', error);
+                    });
+                }
+
+                // 加载各种数据
+                loadPlants();
+                loadGuides();
+                loadProblems();
+                loadCommunityPosts();
+            });
+        </script>
+    </body>
+    </html>
